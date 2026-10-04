@@ -37,6 +37,9 @@ plan.md are still unticked.
   worker is network-first and refreshes each file as it is fetched.
 - **`icons/icon.svg` is the source for the PNG icons.** Re-render them from it in
   a real browser engine; ImageMagick's built-in SVG renderer drops the arc.
+  `apple-touch-icon.png`, `apple-touch-icon-precomposed.png` and `favicon.ico`
+  at the repo root are copies: iOS and browsers ask for those exact paths at the
+  root of a domain, whatever the page links to. Regenerate them together.
 
 ## iOS behaviour that shapes the code
 
