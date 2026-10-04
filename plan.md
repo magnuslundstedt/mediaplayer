@@ -3,9 +3,9 @@
 A browser media player for practising one section of a track on repeat. Built for
 dance rehearsal, used on a phone.
 
-**Status:** MVP deployed at `loops.dance` (v0.2.4). Used for a one-hour practice
-session on an iPhone on 2026-10-04 and it worked well. Some on-device checklist
-items have not been tried one by one.
+**Status:** MVP deployed at `loops.dance` (v0.2.4) and used in a real practice
+session on an iPhone. Some on-device checklist items have not been tried one by
+one.
 Last updated 2026-10-04.
 
 ## Goal
@@ -29,8 +29,6 @@ share or distribute music: no upload, no accounts, no backend.
 | Small prefs | `localStorage` (last opened track only). | Read synchronously at launch. |
 | Screen | Screen Wake Lock held while playing. | Keeps the phone from auto-locking mid-practice. |
 | URLs | Relative everywhere, including the service worker scope and manifest. | The site lives under `/mediaplayer/` on Pages now and at `/` on a custom domain later. |
-
-"Saved in local storage" in the original brief is read as "saved on the device".
 
 ## MVP scope
 
@@ -180,7 +178,7 @@ Expected platform behaviour, not yet confirmed on the target device. Assumes iOS
 
 | Risk | Effect | Mitigation |
 |---|---|---|
-| Seeking in a VBR mp3 is approximate. | Loop start lands slightly off, differently on each wrap. | Test with the real show track early. If it drifts: re-encode to CBR or m4a, or move looping to Web Audio. |
+| Seeking in a VBR mp3 is approximate. | Loop start lands slightly off, differently on each wrap. | Test with a real track early. If it drifts: re-encode to CBR or m4a, or move looping to Web Audio. |
 | `<audio>` looping is not gapless. | A few tens of ms of slack at the wrap. | Acceptable for practice. Sample-accurate looping means decoding into Web Audio and losing free pitch-preserving speed. |
 | Wake Lock in a Home Screen app needs iOS 18.4+. | Screen dims and locks on older iOS. | Show the lock state. Fallback is Settings → Auto-Lock → Never, or using the Safari tab. |
 | Wake Lock is dropped when the page is hidden, and may be refused in Low Power Mode. | Screen locks after switching apps and back. | Re-acquire on `visibilitychange`; show the state. |
@@ -213,7 +211,7 @@ Expected platform behaviour, not yet confirmed on the target device. Assumes iOS
   Untested on a phone so far.
 - **Known issue, reported 2026-10-04:** with the phone locked and the app
   playing in the background, tapping the lock-screen player opens a *different*
-  Home Screen web app (an older, unrelated one). Which app that tap opens is
+  Home Screen web app. Which app that tap opens is
   decided by iOS; no tag or manifest field controls it, and no matching bug
   report was found. Check whether v0.2.4 changes it. If not, report it to Apple
   and note that deleting stale Home Screen web apps may be the only workaround.
@@ -224,7 +222,7 @@ Expected platform behaviour, not yet confirmed on the target device. Assumes iOS
 
 ### Speed change quality (researched 2026-10-04, not built)
 
-Reported from the phone: at 90 % the audio sounds "clippy". The MVP uses the
+Reported in use on an iPhone: at 90 % the audio sounds "clippy". The MVP uses the
 `<audio>` element's built-in pitch-preserving stretch. Browsers give no control
 over that algorithm, and Web Audio has no native time-stretch at all, so better
 quality means bringing our own stretcher.
@@ -282,42 +280,16 @@ Place and drag loop points on a drawn waveform instead of by ear alone.
 
 ### M4: custom domain (done 2026-10-04)
 
-**Domain: `loops.dance`**, registered 2026-10-04 at Gandi. DNS is a Route 53
-hosted zone in the side-project AWS account, managed by hand with the AWS CLI
-(one zone, three record sets; no CDK stack).
-The name fits the scope: a tool for setting loops in a piece of music for
-practice, nothing wider. (`loop.dance` is blocked at the registry.
-`fromthetop.dance` is also registered but deliberately not pointed at this
-project; it is held for a possible separate practice tool.)
+**Domain: `loops.dance`.** The name fits the scope: a tool for setting loops in
+a piece of music for practice, nothing wider.
 
-Hosting stays on GitHub Pages. What was done, in this order, because the moment
-the custom domain is set on the repo the `github.io` address starts redirecting
-to it:
+Hosting stays on GitHub Pages. The custom domain is set through the `CNAME` file
+and the Pages setting, with HTTPS enforced. DNS carries the apex `A` and `AAAA`
+records GitHub documents for Pages and a `www` `CNAME`. `www`, plain `http` and
+the old `github.io` address all redirect to `https://loops.dance`.
 
-1. DNS records in the Route 53 zone (TTL 300):
-   - `A` → `185.199.108.153`, `185.199.109.153`, `185.199.110.153`,
-     `185.199.111.153`
-   - `AAAA` → `2606:50c0:8000::153`, `2606:50c0:8001::153`,
-     `2606:50c0:8002::153`, `2606:50c0:8003::153`
-   - `www` `CNAME` → `magnuslundstedt.github.io.`
-2. Nameservers at Gandi replaced with the zone's four Route 53 nameservers. The
-   `.dance` nameservers picked it up within minutes; resolvers that had cached
-   the old answer can lag by up to three hours.
-3. Custom domain set on Pages (`CNAME` file plus the Pages setting), certificate
-   issued for `loops.dance` and `www.loops.dance`, HTTPS enforced. `www`, plain
-   `http` and the old `github.io` address all redirect to `https://loops.dance`.
-4. App named: page title `loops.dance`, Home Screen label "Loops".
-
-Still to do on each phone: open `https://loops.dance`, add it to the Home
-Screen, load the track there and re-mark the loops.
-
-- **Browser storage is per origin: the tracks and loops saved under
-  `magnuslundstedt.github.io` do not follow.** Note each loop's start and end
-  in the old Home Screen app and re-mark them in the new one.
-
-Later option, decided against for now (2026-10-04): S3 + CloudFront in the
-side-project AWS account, the way the other projects are hosted (CDK stacks, a
-GitHub OIDC deploy role, a manually dispatched deploy with invalidation). The
-address stays `https://loops.dance`, so users and their saved loops would not
-notice the move. Reasons to do it: deploys become a deliberate act instead of
-every push to `main`, and control over response headers and caching.
+- **Browser storage is per origin: tracks and loops saved under the old
+  `github.io` address do not follow.** Anyone who installed the app from there
+  adds `https://loops.dance` to the Home Screen and marks the loops again.
+- If hosting ever moves off Pages, keeping the address `https://loops.dance`
+  means users and their saved loops will not notice.
