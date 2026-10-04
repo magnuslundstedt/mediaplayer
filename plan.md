@@ -271,7 +271,7 @@ Place and drag loop points on a drawn waveform instead of by ear alone.
   the MVP already uses. If the wake lock proves unreliable on the phone, the
   known workaround is a tiny looping muted video, not a canvas.
 
-### M4: custom domain
+### M4: custom domain (done 2026-10-04)
 
 **Domain: `loops.dance`**, registered 2026-10-04 at Gandi. DNS is a Route 53
 hosted zone in the side-project AWS account, managed by hand with the AWS CLI
@@ -281,26 +281,30 @@ practice, nothing wider. (`loop.dance` is blocked at the registry.
 `fromthetop.dance` is also registered but deliberately not pointed at this
 project; it is held for a possible separate practice tool.)
 
-Hosting stays on GitHub Pages. Order matters, because the moment the custom
-domain is set on the repo the `github.io` address starts redirecting to it:
+Hosting stays on GitHub Pages. What was done, in this order, because the moment
+the custom domain is set on the repo the `github.io` address starts redirecting
+to it:
 
-1. DNS records in the Route 53 zone (done 2026-10-04, TTL 300):
+1. DNS records in the Route 53 zone (TTL 300):
    - `A` → `185.199.108.153`, `185.199.109.153`, `185.199.110.153`,
      `185.199.111.153`
    - `AAAA` → `2606:50c0:8000::153`, `2606:50c0:8001::153`,
      `2606:50c0:8002::153`, `2606:50c0:8003::153`
    - `www` `CNAME` → `magnuslundstedt.github.io.`
-2. At Gandi, replace the default nameservers with the zone's four Route 53
-   nameservers. Until this is done the public still asks Gandi and gets nothing.
-3. Set the custom domain on Pages (`CNAME` file plus the Pages setting), wait for
-   the certificate, then enforce HTTPS. Service worker and wake lock need HTTPS.
-4. Give the app its name: page title and Home Screen label.
-5. On each phone: open `https://loops.dance`, add to Home Screen, load the track.
+2. Nameservers at Gandi replaced with the zone's four Route 53 nameservers. The
+   `.dance` nameservers picked it up within minutes; resolvers that had cached
+   the old answer can lag by up to three hours.
+3. Custom domain set on Pages (`CNAME` file plus the Pages setting), certificate
+   issued for `loops.dance` and `www.loops.dance`, HTTPS enforced. `www`, plain
+   `http` and the old `github.io` address all redirect to `https://loops.dance`.
+4. App named: page title `loops.dance`, Home Screen label "Loops".
+
+Still to do on each phone: open `https://loops.dance`, add it to the Home
+Screen, load the track there and re-mark the loops.
 
 - **Browser storage is per origin: the tracks and loops saved under
   `magnuslundstedt.github.io` do not follow.** Note each loop's start and end
-  before switching and re-mark them, or ship export/import (M2) first.
-- Do not switch right before a practice session.
+  in the old Home Screen app and re-mark them in the new one.
 
 Later option, decided against for now (2026-10-04): S3 + CloudFront in the
 side-project AWS account, the way the other projects are hosted (CDK stacks, a
