@@ -364,7 +364,7 @@ function setSpeed(percent) {
 function setGap(seconds) {
   const track = state.track;
   if (!track) return;
-  track.gap = Math.min(10, Math.max(0, Math.round(seconds)));
+  track.gap = Math.min(30, Math.max(0, Math.round(seconds)));
   player.setGap(track.gap);
   saveSoon();
   renderSettings();

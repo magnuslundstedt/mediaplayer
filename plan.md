@@ -3,7 +3,7 @@
 A browser media player for practising one section of a track on repeat. Built for
 dance rehearsal, used on a phone.
 
-**Status:** MVP built and deployed (v0.1.1). First run on an iPhone: it works and
+**Status:** MVP built and deployed (v0.1.2). First run on an iPhone: it works and
 the screen stays on. The rest of the on-device checklist is still to be ticked.
 Last updated 2026-10-04.
 
@@ -43,7 +43,7 @@ share or distribute music: no upload, no accounts, no backend.
 4. **Named loops.** Several per track ("chorus", "ending"); tap to switch, rename,
    delete.
 5. **Speed.** 50–100 % in 5 % steps, pitch preserved.
-6. **Pause before repeat.** 0–10 s of silence at the end of the loop, to get back
+6. **Pause before repeat.** 0–30 s of silence at the end of the loop, to get back
    to the starting position. The countdown fills the screen so it can be read
    from across the room; tapping it stops the repeat.
 7. **Persistence.** Tracks and loops are kept on the device. The app reopens on
