@@ -3,7 +3,7 @@
 A browser media player for practising one section of a track on repeat. Built for
 dance rehearsal, used on a phone.
 
-**Status:** MVP deployed at `loops.dance` (v0.2.0). Used for a one-hour practice
+**Status:** MVP deployed at `loops.dance` (v0.2.4). Used for a one-hour practice
 session on an iPhone on 2026-10-04 and it worked well. Some on-device checklist
 items have not been tried one by one.
 Last updated 2026-10-04.
@@ -207,7 +207,16 @@ Expected platform behaviour, not yet confirmed on the target device. Assumes iOS
   need a short scroll.
 - A scrubber that responds to a tap anywhere on the bar, if the native range
   input on iOS turns out to follow only a drag of the thumb.
-- Lock-screen and headphone controls through the Media Session API.
+- ~~Lock-screen and headphone controls through the Media Session API.~~ Done in
+  v0.2.4: the lock screen shows the track, the loop name and the app icon;
+  play, pause, the scrubber and "previous" (from the top of the loop) work.
+  Untested on a phone so far.
+- **Known issue, reported 2026-10-04:** with the phone locked and the app
+  playing in the background, tapping the lock-screen player opens a *different*
+  Home Screen web app (an older, unrelated one). Which app that tap opens is
+  decided by iOS; no tag or manifest field controls it, and no matching bug
+  report was found. Check whether v0.2.4 changes it. If not, report it to Apple
+  and note that deleting stale Home Screen web apps may be the only workaround.
 - Lead-in: start a few seconds before the loop start to catch the entry.
 - Count-in click during the pause before repeat.
 - Speed and pause saved per loop.

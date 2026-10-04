@@ -4,6 +4,7 @@ import { Player } from './player.js';
 import { withStart, withEnd, nudge, clampLoop, formatTime, nextLoopName } from './loop.js';
 import * as store from './store.js';
 import { createWakeLock } from './wakelock.js';
+import { createNowPlaying } from './nowplaying.js';
 import { VERSION } from './version.js';
 
 const SKIP = 5;
@@ -98,6 +99,13 @@ const wake = createWakeLock((next) => {
   renderStatus();
 });
 state.wake = wake.state;
+
+const nowPlaying = createNowPlaying({
+  play: () => player.play(),
+  pause: () => player.pause(),
+  restart,
+  seek: (t) => player.seek(t),
+});
 
 // ---------------------------------------------------------------- helpers
 
@@ -416,6 +424,10 @@ function renderTransport() {
   el.loopBtn.setAttribute('aria-pressed', String(Boolean(loop && state.track.loopOn)));
   if (playing) wake.enable();
   else wake.disable();
+  const track = state.track;
+  nowPlaying.update(
+    track ? { title: track.name, subtitle: loop && track.loopOn ? loop.name : 'loops.dance', state: s } : null,
+  );
   renderStatus();
 }
 

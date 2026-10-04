@@ -18,6 +18,7 @@ const SHELL = [
   'js/loop.js',
   'js/store.js',
   'js/wakelock.js',
+  'js/nowplaying.js',
   'js/version.js',
   'manifest.webmanifest',
   'icons/icon.svg',

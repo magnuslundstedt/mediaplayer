@@ -56,6 +56,10 @@ plan.md are still unticked.
 - `requestAnimationFrame` stops when the page is hidden; `timeupdate` keeps coming
   at roughly 4 Hz.
 - The Home Screen app and the Safari tab have separate storage.
+- Media Session: registering `seekbackward`/`seekforward` handlers replaces the
+  previous/next buttons on the lock screen, so `js/nowplaying.js` registers
+  neither and uses "previous" for from-the-top. Which app opens when the
+  lock-screen player is tapped is up to iOS, not the page.
 - Service worker, Wake Lock and `crypto.subtle` need a secure context: HTTPS or
   `localhost`. They are absent on `http://<lan-ip>`.
 
