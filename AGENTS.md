@@ -23,7 +23,8 @@ plan.md are still unticked.
 - **Relative URLs only**: links, imports, manifest, service worker scope. The site
   is served from `/` on `loops.dance`, and from a subpath whenever it is run from
   the `github.io` project address or a fork. A leading `/` breaks the subpath
-  case.
+  case. The one exception is the share-card tags in `index.html` (`og:url`,
+  `og:image`, canonical): link-preview crawlers need absolute URLs.
 - **`main` is production.** Pages serves the repo root from `main`, so a push is a
   deploy and every file at the root is publicly reachable.
 - **Audio bytes go in IndexedDB as an `ArrayBuffer`.** `localStorage` is for tiny
@@ -40,6 +41,10 @@ plan.md are still unticked.
   `apple-touch-icon.png`, `apple-touch-icon-precomposed.png` and `favicon.ico`
   at the repo root are copies: iOS and browsers ask for those exact paths at the
   root of a domain, whatever the page links to. Regenerate them together.
+- **`icons/og.svg` is the source for `og.png`**, the 1200x630 share card. Render
+  it in a browser on a Mac (the text uses the system font). Keep what matters in
+  the middle 630 px: some link previews crop to a square. Text changes go in
+  both the SVG and the `og:` tags.
 
 ## iOS behaviour that shapes the code
 

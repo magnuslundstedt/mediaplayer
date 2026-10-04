@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <!-- Share card, 1200x630. Everything that matters sits in the middle 630px,
+       so previews that crop to a square still show it. -->
+  <rect width="1200" height="630" fill="#111315"/>
+
+  <!-- The app icon's glyph, without its square. -->
+  <g transform="translate(459 12) scale(0.55)">
+    <path d="M370.9 159.6A150 150 0 1 1 230 108.3" fill="none" stroke="#7cc4ff" stroke-width="36" stroke-linecap="round"/>
+    <path d="M222.7 66.9L279.2 99.6L237.3 149.7Z" fill="#7cc4ff" stroke="#7cc4ff" stroke-width="12" stroke-linejoin="round"/>
+    <path d="M218 184v144l118-72z" fill="#f2f2f0" stroke="#f2f2f0" stroke-width="14" stroke-linejoin="round"/>
+  </g>
+
+  <g font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif" text-anchor="middle">
+    <text x="600" y="368" font-size="108" font-weight="800" letter-spacing="-2" fill="#f2f2f0">loops<tspan fill="#7cc4ff">.dance</tspan></text>
+    <text x="600" y="436" font-size="38" font-weight="500" fill="#b9bec4">Loop any section of a song.</text>
+    <text x="600" y="486" font-size="38" font-weight="500" fill="#b9bec4">Slow it down. Practise.</text>
+  </g>
+
+  <!-- A scrubber with a looped section, as in the player. -->
+  <rect x="330" y="545" width="540" height="14" rx="7" fill="#2a2e34"/>
+  <rect x="520" y="545" width="200" height="14" fill="#7cc4ff"/>
+  <circle cx="560" cy="552" r="17" fill="#f2f2f0"/>
+</svg>
