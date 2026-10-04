@@ -3,7 +3,8 @@
 A browser media player for practising one section of a track on repeat. Built for
 dance rehearsal, used on a phone.
 
-**Status:** scoped, not built. The live site is a placeholder.
+**Status:** MVP built and deployed (v0.1.0). Checked in desktop Chrome; **not yet
+confirmed on an iPhone**, see the on-device checklist.
 Last updated 2026-10-04.
 
 ## Goal
@@ -37,7 +38,8 @@ share or distribute music: no upload, no accounts, no backend.
 2. **Transport.** Play/pause, scrubber, elapsed and total time, skip back and
    forward 5 s.
 3. **A/B loop.** Set start and set end at the current position, nudge either end by
-   0.1 s or 1 s, loop on/off, loop region drawn on the scrubber.
+   0.1 s or 1 s, loop on/off, loop region drawn on the scrubber. A "from the top"
+   button plays from the loop start.
 4. **Named loops.** Several per track ("chorus", "ending"); tap to switch, rename,
    delete.
 5. **Speed.** 50–100 % in 5 % steps, pitch preserved.
@@ -75,10 +77,12 @@ js/player.js     <audio> wrapper: loop engine, speed, pause-before-repeat
 js/loop.js       pure loop maths (clamp, nudge, format), unit-testable
 js/store.js      IndexedDB: tracks and file bytes
 js/wakelock.js   acquire, release, re-acquire on visibilitychange
+js/version.js    build version shown in the footer
 sw.js            service worker (at the root so its scope covers the site)
 manifest.webmanifest
-icons/           apple-touch-icon 180, 192, 512, maskable 512
+icons/           icon.svg (source), apple-touch-icon 180, icon 192 and 512
 test/            node --test, no dependencies
+package.json     marks the code as ES modules for node; no dependencies
 ```
 
 ### Data
@@ -87,7 +91,7 @@ test/            node --test, no dependencies
 IndexedDB "mediaplayer", version 1
   tracks   keyPath "id"
            { id, name, type, size, duration, addedAt, lastOpenedAt,
-             speed, gap, activeLoopId,
+             speed, gap, loopOn, activeLoopId,
              loops: [{ id, name, start, end }] }
   files    key = track id, value = ArrayBuffer
 
@@ -104,21 +108,31 @@ stores so listing tracks never reads audio.
 - While the page is visible, a `requestAnimationFrame` loop compares
   `audio.currentTime` with the loop end; `timeupdate` is the coarse fallback when
   the page is hidden.
+- The wrap fires when playback *crosses* the loop end, not whenever the playhead
+  is past it. Scrubbing to before the loop gives a lead-in; scrubbing to after it
+  plays on to the end of the track and then returns to the loop.
 - Wrap with no pause: set `currentTime` to the loop start and keep playing.
-- Wrap with a pause: `pause()`, count down, seek to the start, `play()`. The wake
+- Wrap with a pause: `pause()`, seek to the start, count down, `play()`. The wake
   lock stays held through the gap.
 - `ended` counts as a wrap, so a loop can run to the end of the track.
 - Minimum loop length 0.5 s; start and end are clamped to the track and to each
   other.
+- Loops save themselves: there is no save step. Marking a start creates
+  "Loop N"; every edit is written to storage.
+- Editing an edge jumps playback to where the change can be heard: the new
+  start, or 2 s before the new end.
 
 ### Offline
 
-- `sw.js` precaches the app shell under a versioned cache name.
-- Network-first with a short timeout, falling back to the cache. The shell is a
+- `sw.js` precaches the app shell on install.
+- Network-first with a 2 s timeout, falling back to the cache. The shell is a
   few small files, so the round trip is cheap, and a stale cached build is the
   failure mode that hurts most while iterating on the day of use.
-- The build version is shown in the UI, so it is obvious which build the phone is
-  running.
+- Every successful fetch refreshes the cached copy, so the cache name does not
+  need bumping per release: an online launch runs the latest build, an offline
+  launch runs the last one seen.
+- The build version (`js/version.js`) is shown in the footer, so it is obvious
+  which build the phone is running.
 - `navigator.storage.persist()` is requested and the result shown.
 
 ## Milestones
@@ -128,18 +142,21 @@ stores so listing tracks never reads audio.
 - [x] plan.md, AGENTS.md, README.md, MIT license
 - [x] Public repo, GitHub Pages serving a placeholder
 
-### M1: MVP
+### M1: MVP (built, awaiting the phone)
 
-Ordered so the riskiest part (audio on the actual phone) is proven first and the
-service worker, which makes iteration harder, comes last.
-
-- [ ] App shell; load a file and play it from memory. Check on the phone.
-- [ ] Loop engine: set A/B, nudge, wrap; speed; pause before repeat. Unit tests
+- [x] App shell; load a file and play it.
+- [x] Loop engine: set A/B, nudge, wrap; speed; pause before repeat. Unit tests
       for `loop.js`.
-- [ ] Persistence: tracks, loops, restore last session.
-- [ ] Wake lock.
-- [ ] Manifest, icons, service worker. Add to Home Screen.
+- [x] Persistence: tracks, loops, restore last session.
+- [x] Wake lock.
+- [x] Manifest, icons, service worker.
 - [ ] Run the on-device checklist below.
+
+Verified so far, in headless desktop Chrome at phone size with a VBR mp3: load,
+play, scrub, mark and nudge a loop, repeated wraps (20–30 ms past the loop end;
+about 90 ms on the hidden-page fallback), speed, pause before repeat, several
+loops, rename, delete, restore after reload, launch and play offline. None of
+that says anything about iOS; the checklist does.
 
 ### On-device checklist (iPhone, Home Screen app)
 
@@ -171,20 +188,23 @@ Expected platform behaviour, not yet confirmed on the target device. Assumes iOS
 | File picker `accept` quirks on iOS. | mp3 files greyed out in Files. | `accept="audio/*,.mp3,.m4a,.wav"`; drop `accept` entirely if it still misbehaves. |
 | Phone can only be tested over HTTPS. | Service worker, Wake Lock and `crypto.subtle` do not exist on `http://192.168.x.x`. | Test on the phone through the Pages URL; `localhost` is fine on the laptop. |
 
-## Open decisions
+## Decided 2026-10-04
 
-Defaults used unless decided otherwise.
-
-- **App name.** Working name `mediaplayer`. The Home Screen label needs something
-  of about 12 characters or fewer.
-- **Speed and pause are remembered per track**, not per loop.
-- **Speed tops out at 100 %.** Going above (say 110 %) is a one-line change.
-- **Looping with the phone locked** is best effort, not a requirement.
+- **App name** stays `mediaplayer` for the MVP; revisit afterwards.
+- **Speed and pause are remembered per track**, not per loop: they get adjusted
+  on the fly while a loop plays.
+- **Speed tops out at 100 %.**
+- **Looping with the phone locked** is best effort. See how the wake lock holds
+  up in practice before doing more.
 
 ## After the MVP
 
 ### M2: practice refinements
 
+- Fit the whole player on one phone screen; today the speed and pause controls
+  need a short scroll.
+- A scrubber that responds to a tap anywhere on the bar, if the native range
+  input on iOS turns out to follow only a drag of the thumb.
 - Lock-screen and headphone controls through the Media Session API.
 - Lead-in: start a few seconds before the loop start to catch the entry.
 - Count-in click during the pause before repeat.
@@ -202,6 +222,10 @@ Place and drag loop points on a drawn waveform instead of by ear alone.
   and zoom as uniforms. Pinch to zoom, drag the loop handles.
 - WebGPU is in Safari from iOS 26. Canvas 2D is the fallback wherever
   `navigator.gpu` is missing, drawing the same peaks.
+- Rendering does not keep the screen awake by itself: a browser page has no
+  equivalent of a native game's idle-timer switch other than the Wake Lock API
+  the MVP already uses. If the wake lock proves unreliable on the phone, the
+  known workaround is a tiny looping muted video, not a canvas.
 
 ### M4: custom domain and hosting
 

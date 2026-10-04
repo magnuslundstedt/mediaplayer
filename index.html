@@ -3,48 +3,177 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="color-scheme" content="dark light">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#111315">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="mediaplayer">
   <title>mediaplayer</title>
-  <style>
-    :root {
-      --bg: #111315;
-      --fg: #f2f2f0;
-      --muted: #9aa0a6;
-      --accent: #7cc4ff;
-    }
-    @media (prefers-color-scheme: light) {
-      :root {
-        --bg: #fafaf8;
-        --fg: #16181a;
-        --muted: #5c6268;
-        --accent: #0b63b0;
-      }
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      min-height: 100dvh;
-      display: grid;
-      place-items: center;
-      padding: 24px 16px;
-      background: var(--bg);
-      color: var(--fg);
-      font: 17px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
-    main { max-width: 28rem; }
-    h1 { margin: 0 0 8px; font-size: 1.75rem; }
-    p { margin: 0 0 16px; }
-    .muted { color: var(--muted); }
-    a { color: var(--accent); }
-  </style>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="modulepreload" href="js/player.js">
+  <link rel="modulepreload" href="js/loop.js">
+  <link rel="modulepreload" href="js/store.js">
+  <link rel="modulepreload" href="js/wakelock.js">
+  <link rel="modulepreload" href="js/version.js">
+  <script type="module" src="js/app.js"></script>
 </head>
 <body>
-  <main>
-    <h1>mediaplayer</h1>
-    <p>A player for practising one section of a track on repeat: load your own
-      audio file, mark a loop, slow it down.</p>
-    <p class="muted">Not built yet. This page is a placeholder.</p>
-    <p><a href="https://github.com/magnuslundstedt/mediaplayer/blob/main/plan.md">Read the plan</a></p>
-  </main>
+  <div class="app">
+    <header class="top">
+      <button id="trackBtn" class="track-btn" type="button" aria-haspopup="dialog">
+        <span class="track-text">
+          <span class="label">Track</span>
+          <span id="trackName" class="track-name">No track loaded</span>
+        </span>
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </header>
+
+    <p id="notice" class="notice" role="status" hidden></p>
+
+    <div id="installHint" class="hint" hidden>
+      <p><strong>Add this page to your Home Screen</strong> (Share, then Add to Home Screen) and load your track from there. The Home Screen app works offline and keeps your tracks.</p>
+      <button id="installHintClose" class="btn" type="button">Got it</button>
+    </div>
+
+    <section id="empty" class="empty">
+      <h1>mediaplayer</h1>
+      <p>Loop one section of your own track while you practise.</p>
+      <label class="btn btn-primary btn-big" for="fileInput">Load an audio file</label>
+      <p class="muted">The file stays on this device.</p>
+    </section>
+
+    <main id="player" hidden>
+      <section class="now">
+        <div class="time">
+          <span id="timeNow" class="time-now">0:00.0</span>
+          <span id="gapBanner" class="gap-banner" hidden>Again in <span id="gapCount">0</span></span>
+          <span id="timeTotal" class="time-total">0:00</span>
+        </div>
+        <div id="scrub" class="scrub">
+          <div class="scrub-track">
+            <div class="scrub-played"></div>
+            <div id="scrubLoop" class="scrub-loop" hidden></div>
+          </div>
+          <input id="seek" type="range" min="0" max="1" step="any" value="0" aria-label="Position in track">
+        </div>
+      </section>
+
+      <section class="transport" aria-label="Playback">
+        <button id="restartBtn" class="round" type="button" aria-label="Play from the start of the loop">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h3v14H5zM20 5v14L9 12z"/></svg>
+        </button>
+        <button id="backBtn" class="round" type="button" aria-label="Back 5 seconds">−5</button>
+        <button id="playBtn" class="round play" type="button" aria-label="Play">
+          <svg class="icon icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+          <svg class="icon icon-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
+        </button>
+        <button id="fwdBtn" class="round" type="button" aria-label="Forward 5 seconds">+5</button>
+        <button id="loopBtn" class="round toggle" type="button" aria-label="Loop" aria-pressed="false">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>
+        </button>
+      </section>
+
+      <section class="card" aria-label="Loops">
+        <div id="loopChips" class="chips"></div>
+        <p id="loopHint" class="muted small"></p>
+        <div class="edges">
+          <div class="edge">
+            <div class="edge-head"><span class="label">Start</span><span id="startTime" class="edge-time">–</span></div>
+            <button id="setStartBtn" class="btn btn-primary" type="button">Set start here</button>
+            <div class="nudges">
+              <button class="btn" type="button" data-edge="start" data-delta="-0.1">−0.1</button>
+              <button class="btn" type="button" data-edge="start" data-delta="0.1">+0.1</button>
+              <button class="btn" type="button" data-edge="start" data-delta="-1">−1 s</button>
+              <button class="btn" type="button" data-edge="start" data-delta="1">+1 s</button>
+            </div>
+          </div>
+          <div class="edge">
+            <div class="edge-head"><span class="label">End</span><span id="endTime" class="edge-time">–</span></div>
+            <button id="setEndBtn" class="btn btn-primary" type="button">Set end here</button>
+            <div class="nudges">
+              <button class="btn" type="button" data-edge="end" data-delta="-0.1">−0.1</button>
+              <button class="btn" type="button" data-edge="end" data-delta="0.1">+0.1</button>
+              <button class="btn" type="button" data-edge="end" data-delta="-1">−1 s</button>
+              <button class="btn" type="button" data-edge="end" data-delta="1">+1 s</button>
+            </div>
+          </div>
+        </div>
+        <div class="loop-actions">
+          <button id="renameBtn" class="btn btn-quiet" type="button">Rename</button>
+          <button id="deleteLoopBtn" class="btn btn-quiet danger" type="button">Delete loop</button>
+        </div>
+      </section>
+
+      <section class="card" aria-label="Practice settings">
+        <div class="setting">
+          <div class="setting-head">
+            <span class="label">Speed</span>
+            <span id="speedValue" class="setting-value">100%</span>
+          </div>
+          <div class="stepper">
+            <button id="speedDown" class="btn" type="button" aria-label="Slower">−</button>
+            <input id="speed" type="range" min="50" max="100" step="5" value="100" aria-label="Speed">
+            <button id="speedUp" class="btn" type="button" aria-label="Faster">+</button>
+          </div>
+        </div>
+        <div class="setting">
+          <div class="setting-head">
+            <span class="label">Pause before repeat</span>
+            <span id="gapValue" class="setting-value">Off</span>
+          </div>
+          <div class="stepper">
+            <button id="gapDown" class="btn" type="button" aria-label="Shorter pause">−</button>
+            <input id="gap" type="range" min="0" max="10" step="1" value="0" aria-label="Pause before repeat, seconds">
+            <button id="gapUp" class="btn" type="button" aria-label="Longer pause">+</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <span id="status"></span>
+      <span id="version"></span>
+    </footer>
+  </div>
+
+  <input id="fileInput" class="visually-hidden" type="file" accept="audio/*,.mp3,.m4a,.aac,.wav" tabindex="-1">
+  <audio id="audio" preload="auto"></audio>
+
+  <dialog id="tracksDialog" class="dialog" aria-labelledby="tracksTitle">
+    <h2 id="tracksTitle">Tracks</h2>
+    <ul id="trackList" class="track-list"></ul>
+    <p id="trackListEmpty" class="muted" hidden>No tracks saved on this device yet.</p>
+    <div class="dialog-actions">
+      <button id="tracksClose" class="btn" type="button">Close</button>
+      <button id="tracksLoad" class="btn btn-primary" type="button">Load a file</button>
+    </div>
+  </dialog>
+
+  <dialog id="textDialog" class="dialog" aria-labelledby="textTitle">
+    <form method="dialog">
+      <h2 id="textTitle"></h2>
+      <input id="textInput" type="text" maxlength="40" autocomplete="off" autocapitalize="sentences" enterkeyhint="done">
+      <div class="dialog-actions">
+        <button id="textCancel" class="btn" type="button">Cancel</button>
+        <button class="btn btn-primary" value="ok">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="confirmDialog" class="dialog" aria-labelledby="confirmTitle">
+    <form method="dialog">
+      <h2 id="confirmTitle"></h2>
+      <p id="confirmText" class="muted"></p>
+      <div class="dialog-actions">
+        <button id="confirmCancel" class="btn" type="button">Cancel</button>
+        <button id="confirmOk" class="btn btn-danger" value="ok">Delete</button>
+      </div>
+    </form>
+  </dialog>
 </body>
 </html>

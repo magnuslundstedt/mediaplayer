@@ -7,8 +7,8 @@ Scope, design, milestones and open decisions are in [plan.md](plan.md). Read it
 before changing anything, and keep it current: tick off milestones, record
 decisions and the reason for them.
 
-**Current state:** scaffold only. `index.html` is a placeholder; none of the
-player exists yet.
+**Current state:** the MVP (v0.1.0) is built and deployed. It has been exercised
+in desktop Chrome only; the on-device checklist in plan.md is still open.
 
 ## Rules
 
@@ -26,8 +26,13 @@ player exists yet.
   prefs only.
 - **Changing the IndexedDB schema means a version bump and a migration.** The
   user's saved loops live there and are not backed up anywhere.
-- **Bump the service worker cache version whenever a shell file changes** (once
-  `sw.js` exists), and keep the visible build version in step.
+- **Bump `VERSION` in `js/version.js` on every deploy.** It is shown in the
+  footer and is the only way to tell which build a phone is running.
+- **A new shell file goes in the `SHELL` list in `sw.js`**, or a first install
+  will not have it offline. The cache name itself does not need bumping: the
+  worker is network-first and refreshes each file as it is fetched.
+- **`icons/icon.svg` is the source for the PNG icons.** Re-render them from it in
+  a real browser engine; ImageMagick's built-in SVG renderer drops the arc.
 
 ## iOS behaviour that shapes the code
 
@@ -46,8 +51,12 @@ player exists yet.
 
 ```sh
 python3 -m http.server 8000     # http://localhost:8000
-node --test                     # unit tests, once test/ exists
+node --test                     # unit tests for js/loop.js
 ```
+
+Chrome does not load media in a tab that has never been visible, so a
+background or automation tab shows a track with no duration that never plays.
+Bring the tab to the front, or drive headless Chrome instead.
 
 Test on the phone through the Pages URL,
 <https://magnuslundstedt.github.io/mediaplayer/>, not through the laptop's LAN
