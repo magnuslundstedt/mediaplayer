@@ -1,6 +1,6 @@
 {
-  "name": "mediaplayer",
-  "short_name": "mediaplayer",
+  "name": "loops.dance",
+  "short_name": "Loops",
   "description": "Loop a section of your own track while you practise.",
   "id": "./",
   "start_url": "./",

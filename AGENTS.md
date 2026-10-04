@@ -1,4 +1,6 @@
-# mediaplayer
+# loops.dance
+
+The repository is called `mediaplayer`; the app and its address are `loops.dance`.
 
 A browser media player for looping one section of a track during practice. Runs
 on a phone as a Home Screen web app; primary target is iPhone Safari.
@@ -7,9 +9,9 @@ Scope, design, milestones and open decisions are in [plan.md](plan.md). Read it
 before changing anything, and keep it current: tick off milestones, record
 decisions and the reason for them.
 
-**Current state:** the MVP is built and deployed. A first run on an iPhone
-confirmed it works and that the screen stays on; the rest of the on-device
-checklist in plan.md is still open.
+**Current state:** the MVP is deployed at <https://loops.dance> and has been used
+for a full practice session on an iPhone. Parts of the on-device checklist in
+plan.md are still unticked.
 
 ## Rules
 
@@ -19,8 +21,9 @@ checklist in plan.md is still open.
 - **Nothing leaves the device.** The user's audio and loops are never uploaded,
   logged or sent anywhere. No analytics, no backend.
 - **Relative URLs only**: links, imports, manifest, service worker scope. The site
-  is served under `/mediaplayer/` on GitHub Pages today and from `/` on a custom
-  domain later. A leading `/` breaks one of the two.
+  is served from `/` on `loops.dance`, and from a subpath whenever it is run from
+  the `github.io` project address or a fork. A leading `/` breaks the subpath
+  case.
 - **`main` is production.** Pages serves the repo root from `main`, so a push is a
   deploy and every file at the root is publicly reachable.
 - **Audio bytes go in IndexedDB as an `ArrayBuffer`.** `localStorage` is for tiny
@@ -60,7 +63,7 @@ background or automation tab shows a track with no duration that never plays.
 Bring the tab to the front, or drive headless Chrome instead.
 
 Test on the phone through the Pages URL,
-<https://magnuslundstedt.github.io/mediaplayer/>, not through the laptop's LAN
+<https://loops.dance>, not through the laptop's LAN
 address (see the secure-context point above).
 
 Desktop Safari and Chrome are not a substitute for the phone: wake lock, file

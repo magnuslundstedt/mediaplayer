@@ -1,13 +1,13 @@
-# mediaplayer
+# loops.dance
 
 A media player for the browser, made for practising one section of a track over
 and over: load your own audio file, mark a loop, slow it down, repeat.
 
 Built for dance rehearsal on a phone, where the built-in player has no A/B loop.
 
-**<https://magnuslundstedt.github.io/mediaplayer/>**
+**<https://loops.dance>**
 
-> **Status: first version.** Works in desktop Chrome; still being checked on
+> **Status: first version, in use.** It has carried a full practice session on an
 > iPhone. Scope and what comes next are in [plan.md](plan.md).
 
 ## What it does

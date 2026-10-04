@@ -3,8 +3,9 @@
 A browser media player for practising one section of a track on repeat. Built for
 dance rehearsal, used on a phone.
 
-**Status:** MVP built and deployed (v0.1.2). First run on an iPhone: it works and
-the screen stays on. The rest of the on-device checklist is still to be ticked.
+**Status:** MVP deployed at `loops.dance` (v0.2.0). Used for a one-hour practice
+session on an iPhone on 2026-10-04 and it worked well. Some on-device checklist
+items have not been tried one by one.
 Last updated 2026-10-04.
 
 ## Goal
@@ -161,8 +162,8 @@ that says anything about iOS; the checklist does.
 
 ### On-device checklist (iPhone, Home Screen app)
 
-- [ ] An mp3 picked from Files plays.
-- [ ] A and B set while listening; the section repeats; nudging moves the ends.
+- [x] An mp3 picked from Files plays.
+- [x] A and B set while listening; the section repeats; nudging moves the ends.
 - [ ] Two named loops saved; switching jumps to the right section.
 - [ ] App closed from the app switcher and reopened: track and loops are back
       without picking the file again.
@@ -212,6 +213,48 @@ Expected platform behaviour, not yet confirmed on the target device. Assumes iOS
 - Speed and pause saved per loop.
 - Export and import of loops as JSON.
 
+### Speed change quality (researched 2026-10-04, not built)
+
+Reported from the phone: at 90 % the audio sounds "clippy". The MVP uses the
+`<audio>` element's built-in pitch-preserving stretch. Browsers give no control
+over that algorithm, and Web Audio has no native time-stretch at all, so better
+quality means bringing our own stretcher.
+
+Candidates:
+
+| Library | Licence | Notes |
+|---|---|---|
+| Signalsmith Stretch | MIT | Official Web Audio release: one 114 KB ES module with the WASM inlined, runs as an AudioWorklet. Works on live input (pitch shift) or on loaded buffers (rate, `loopStart`/`loopEnd`). **Preferred.** |
+| Bungee | MPL-2.0, plus a commercial "Pro" web SDK | Good reputation; the best version is not the open one. |
+| Rubber Band (WASM builds) | GPL | High quality, but GPL would apply to the whole app, and the worklet wrapper is unmaintained since 2022. |
+| SoundTouchJS | MPL-2.0 | Time-domain (WSOLA), the same family the browsers already use; unlikely to sound better. |
+
+Two ways to use Signalsmith Stretch, vendored into the repo (no CDN):
+
+1. **Pitch-correct the element (small).** Keep `<audio>` as the transport. Below
+   100 % set `preservesPitch = false`, so the browser only resamples (clean, but
+   lower in pitch), then route the element through the stretch node in live mode
+   with `semitones = -12 * log2(rate)` to put the pitch back. Loop engine,
+   seeking, pause and storage stay as they are. Bypass the node at 100 %.
+2. **Buffer engine (large).** Decode the file and let the stretch node play it:
+   `rate` for speed, `loopStart`/`loopEnd` for sample-accurate loops. Replaces
+   `player.js`, also fixes the wrap overshoot and VBR seek drift, and shares the
+   decode with the waveform view. Costs about 21 MB of memory per minute of audio.
+
+Either way the sound then goes through Web Audio, which on iOS changes things
+that currently work and must be re-checked on the phone:
+
+- Web Audio is muted by the ring/silent switch unless
+  `navigator.audioSession.type = 'playback'` is set before the context is created
+  (iOS 17+).
+- Playback with the phone locked or the app in the background may stop.
+- There are reports of choppy audio from a media element routed through Web
+  Audio on iOS Safari; that would rule out option 1 and leave option 2.
+
+Plan: build option 1 behind an opt-in "high quality" switch, default off, and
+judge it by ear on the phone. Move to option 2 if it is choppy or if exact loops
+become worth the rewrite.
+
 ### M3: waveform view (WebGPU)
 
 Place and drag loop points on a drawn waveform instead of by ear alone.
@@ -228,10 +271,40 @@ Place and drag loop points on a drawn waveform instead of by ear alone.
   the MVP already uses. If the wake lock proves unreliable on the phone, the
   known workaround is a tiny looping muted video, not a canvas.
 
-### M4: custom domain and hosting
+### M4: custom domain
 
-- Point a domain at Pages, or move to other static hosting.
-- **Browser storage is per origin: moving from `magnuslundstedt.github.io` to a
-  custom domain leaves every saved track and loop behind.** Ship export/import
-  (M2) first, or accept reloading the tracks and re-marking the loops once.
-- The Home Screen app has to be re-added from the new address.
+**Domain: `loops.dance`**, registered 2026-10-04 at Gandi. DNS is a Route 53
+hosted zone in the side-project AWS account, managed by hand with the AWS CLI
+(one zone, three record sets; no CDK stack).
+The name fits the scope: a tool for setting loops in a piece of music for
+practice, nothing wider. (`loop.dance` is blocked at the registry.
+`fromthetop.dance` is also registered but deliberately not pointed at this
+project; it is held for a possible separate practice tool.)
+
+Hosting stays on GitHub Pages. Order matters, because the moment the custom
+domain is set on the repo the `github.io` address starts redirecting to it:
+
+1. DNS records in the Route 53 zone (done 2026-10-04, TTL 300):
+   - `A` → `185.199.108.153`, `185.199.109.153`, `185.199.110.153`,
+     `185.199.111.153`
+   - `AAAA` → `2606:50c0:8000::153`, `2606:50c0:8001::153`,
+     `2606:50c0:8002::153`, `2606:50c0:8003::153`
+   - `www` `CNAME` → `magnuslundstedt.github.io.`
+2. At Gandi, replace the default nameservers with the zone's four Route 53
+   nameservers. Until this is done the public still asks Gandi and gets nothing.
+3. Set the custom domain on Pages (`CNAME` file plus the Pages setting), wait for
+   the certificate, then enforce HTTPS. Service worker and wake lock need HTTPS.
+4. Give the app its name: page title and Home Screen label.
+5. On each phone: open `https://loops.dance`, add to Home Screen, load the track.
+
+- **Browser storage is per origin: the tracks and loops saved under
+  `magnuslundstedt.github.io` do not follow.** Note each loop's start and end
+  before switching and re-mark them, or ship export/import (M2) first.
+- Do not switch right before a practice session.
+
+Later option, decided against for now (2026-10-04): S3 + CloudFront in the
+side-project AWS account, the way the other projects are hosted (CDK stacks, a
+GitHub OIDC deploy role, a manually dispatched deploy with invalidation). The
+address stays `https://loops.dance`, so users and their saved loops would not
+notice the move. Reasons to do it: deploys become a deliberate act instead of
+every push to `main`, and control over response headers and caching.
