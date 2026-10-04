@@ -51,7 +51,6 @@
       <section class="now">
         <div class="time">
           <span id="timeNow" class="time-now">0:00.0</span>
-          <span id="gapBanner" class="gap-banner" hidden>Again in <span id="gapCount">0</span></span>
           <span id="timeTotal" class="time-total">0:00</span>
         </div>
         <div id="scrub" class="scrub">
@@ -140,6 +139,12 @@
       <span id="version"></span>
     </footer>
   </div>
+
+  <button id="gapOverlay" class="gap-overlay" type="button" hidden>
+    <span class="gap-caption">Again in</span>
+    <span id="gapCount" class="gap-count">0</span>
+    <span class="gap-caption gap-stop">Tap to stop</span>
+  </button>
 
   <input id="fileInput" class="visually-hidden" type="file" accept="audio/*,.mp3,.m4a,.aac,.wav" tabindex="-1">
   <audio id="audio" preload="auto"></audio>

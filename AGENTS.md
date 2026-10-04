@@ -7,8 +7,9 @@ Scope, design, milestones and open decisions are in [plan.md](plan.md). Read it
 before changing anything, and keep it current: tick off milestones, record
 decisions and the reason for them.
 
-**Current state:** the MVP (v0.1.0) is built and deployed. It has been exercised
-in desktop Chrome only; the on-device checklist in plan.md is still open.
+**Current state:** the MVP is built and deployed. A first run on an iPhone
+confirmed it works and that the screen stays on; the rest of the on-device
+checklist in plan.md is still open.
 
 ## Rules
 

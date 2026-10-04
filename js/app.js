@@ -25,7 +25,7 @@ const el = {
   player: $('player'),
   timeNow: $('timeNow'),
   timeTotal: $('timeTotal'),
-  gapBanner: $('gapBanner'),
+  gapOverlay: $('gapOverlay'),
   gapCount: $('gapCount'),
   scrub: $('scrub'),
   scrubLoop: $('scrubLoop'),
@@ -86,7 +86,9 @@ const player = new Player(el.audio, {
   onTime: renderTime,
   onDuration,
   onGap: (seconds) => {
-    el.gapCount.textContent = String(Math.ceil(seconds));
+    const text = String(Math.ceil(seconds));
+    el.gapCount.textContent = text;
+    el.gapOverlay.classList.toggle('two-digit', text.length > 1);
   },
   onError: setNotice,
 });
@@ -408,7 +410,7 @@ function renderTransport() {
   el.playBtn.classList.toggle('is-playing', playing);
   el.playBtn.classList.toggle('is-gap', s === 'gap');
   el.playBtn.setAttribute('aria-label', playing ? 'Pause' : 'Play');
-  el.gapBanner.hidden = s !== 'gap';
+  el.gapOverlay.hidden = s !== 'gap';
   const loop = activeLoop();
   el.loopBtn.disabled = !loop;
   el.loopBtn.setAttribute('aria-pressed', String(Boolean(loop && state.track.loopOn)));
@@ -594,6 +596,8 @@ function bind() {
   el.backBtn.addEventListener('click', () => player.skip(-SKIP));
   el.fwdBtn.addEventListener('click', () => player.skip(SKIP));
   el.loopBtn.addEventListener('click', toggleLoop);
+  // Tapping the countdown cancels the repeat, the same as pressing pause.
+  el.gapOverlay.addEventListener('click', () => player.pause());
 
   el.seek.addEventListener('input', () => {
     state.scrubbing = true;

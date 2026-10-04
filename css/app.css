@@ -221,14 +221,6 @@ main {
 
 .time-total { color: var(--muted); }
 
-.gap-banner {
-  padding: 4px 12px;
-  border-radius: 999px;
-  background: var(--warn);
-  color: #2b1d00;
-  font-weight: 700;
-}
-
 .scrub {
   position: relative;
   height: 48px;
@@ -502,6 +494,44 @@ input[type="range"]::-moz-range-thumb {
     linear-gradient(var(--surface-2), var(--surface-2))
     center / calc(100% - var(--thumb)) 8px no-repeat;
   border-radius: 6px;
+}
+
+/* Countdown before a repeat: covers the screen so it reads from across a room. */
+
+.gap-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: env(safe-area-inset-top) 16px env(safe-area-inset-bottom);
+  border: 0;
+  background: rgb(17 19 21 / 0.94);
+  color: var(--warn);
+  cursor: pointer;
+}
+
+/* As large as fits: one digit can be much bigger than "10". */
+.gap-count {
+  font-size: min(110vw, 58dvh);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.two-digit .gap-count { font-size: min(68vw, 58dvh); }
+
+.gap-caption {
+  color: var(--fg);
+  font-size: 1.6rem;
+  font-weight: 600;
+}
+
+.gap-stop {
+  color: var(--muted);
+  font-size: 1.1rem;
 }
 
 /* Footer */
