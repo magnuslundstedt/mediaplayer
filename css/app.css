@@ -536,9 +536,11 @@ input[type="range"]::-moz-range-thumb {
 
 /* Footer */
 
+/* Equal side columns keep the link centred whatever the status text says. */
 .foot {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
   gap: 12px;
   margin-top: auto;
   padding-top: 4px;
@@ -546,7 +548,13 @@ input[type="range"]::-moz-range-thumb {
   font-size: 0.8rem;
 }
 
-#version { flex: none; }
+.foot-link {
+  margin: -10px 0;
+  padding: 10px 8px;
+  color: inherit;
+}
+
+#version { text-align: right; }
 
 /* Dialogs */
 
